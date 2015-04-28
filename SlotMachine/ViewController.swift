@@ -60,6 +60,8 @@ class ViewController: UIViewController {
         //var factoryInstance = Factory() //así creamos una instance de la factory
         //factoryInstance.createSlots() //llamandola directamente en la Factory, nos evitamos tener que inicializar la factoryInstance
         
+        
+        
     
     }
 
@@ -138,6 +140,7 @@ class ViewController: UIViewController {
                 containerView.addSubview(slotImageView)
             }
         }
+        println(slots)
     }
     
     func setupThirdContainer (containerView: UIView) {
