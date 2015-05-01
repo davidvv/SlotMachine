@@ -9,7 +9,6 @@
 import Foundation
 import UIKit
 
-
 //en evernote hay una nota, con un archivo Factory.swift dentro de ella que tiene muchos comentarios. aquel falló pero tiene todas las explicaciones. En este trato de hacerlo exactamente igual que Eliot
 class Factory {
     class func createSlots() -> [[Slot]]{

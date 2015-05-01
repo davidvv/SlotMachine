@@ -33,6 +33,10 @@ class ViewController: UIViewController {
     
     var slots:[[Slot]] = []
     
+    var credits = 0
+    var currentBet = 0
+    var winnings = 0
+    
     let kMarginForView: CGFloat = 10.0
     let kMarginForSlot: CGFloat = 2.0
     
@@ -52,9 +56,11 @@ class ViewController: UIViewController {
         
         setupContainerView()
         setupFirstContainer(self.firstContainer)
-        setupSecondContainer(self.secondContainer)
+        
         setupThirdContainer(self.thirdContainer)
         setupFourthContainer(self.fourthContainer)
+        
+        hardReset()
         
         Factory.createSlots() //así es como llamamos a una class function
         //var factoryInstance = Factory() //así creamos una instance de la factory
@@ -72,19 +78,54 @@ class ViewController: UIViewController {
     
     //IBActions
     func resetButtonPressed(button: UIButton){
-        println("resetButtonPressed")
+        hardReset()
     }
     
     func betOneButtonPressed(button: UIButton){
-        println("betOneButtonPressed does work!")
+       
+        if credits <= 0 {
+            showAlertWithText(heather: "No More Credits", message: "Reset Game")
+        }
+        else {
+            if currentBet < 5 {
+                currentBet += 1
+                credits -= 1
+                updateMainView()
+            }
+            else {
+                showAlertWithText(message: "You can only bet 5 credits at a time!")
+            }
+        }
+        
+        
     }
     
     func betMaxButtonPressed(button: UIButton){
-        println("betMaxButtonPressed works too :)")
+            if credits < 5 {
+            showAlertWithText(heather: "Not enough credits!", message: "Bet less")
+        }
+        else{
+            if currentBet < 5 {
+                var creditsToBetMax = 5 - currentBet
+                credits -= creditsToBetMax
+                currentBet += creditsToBetMax
+                updateMainView()
+            }
+            else {
+                showAlertWithText(message: "You can only bet 5 credits at a time")
+            }
+        }
     }
     func spinButtonPressed(button: UIButton){
+        removeSlotImageViews()
         slots = Factory.createSlots()
         setupSecondContainer(self.secondContainer)
+        
+        var winningsMultiplier = SlotBrain.computeWinnings(slots)
+        winnings = winningsMultiplier * currentBet
+        credits += winnings
+        currentBet = 0
+        updateMainView()
     }
     
     func setupContainerView() {
@@ -130,7 +171,7 @@ class ViewController: UIViewController {
                     let slotContainer = slots[containerNumber]
                     slot = slotContainer[slotNumber]
                     slotImageView.image = slot.image
-                    println(slot.value)
+                    //println(slot.value)
                     }
                 else {
                     slotImageView.image = UIImage(named: "Ace")
@@ -241,16 +282,49 @@ class ViewController: UIViewController {
         self.spinButton.center = CGPoint(x: containerView.frame.width * 7 * kEighth, y: containerView.frame.height * kHalf)
         self.spinButton.addTarget(self, action: "spinButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
         containerView.addSubview(self.spinButton)
-        
-        
-        
-        
     }
     
     
+    //esta función elimina las imagenes que están "detrás" de esa forma, no nos comemos la memoria. la diferencia está entre que el consumo de memoria se mantenga constante en torno a 20.8 MB o que suba 0.1 MB cada vez que picas en "spin"
+    func removeSlotImageViews() {
+        if self.secondContainer != nil {
+            let container: UIView = self.secondContainer
+            let subViews:Array = container.subviews
+            for view in subViews {
+                view.removeFromSuperview()
+            }
+        }
+    }
     
+    //configuro el hard resset
+    func hardReset() {
+        removeSlotImageViews()
+        slots.removeAll(keepCapacity: true)
+        self.setupSecondContainer(self.secondContainer)
+        credits = 50
+        winnings = 0
+        currentBet = 0
+        
+        updateMainView()
+    }
     
+    func updateMainView() {
+        creditsLabel.text = "\(credits)"
+        betLabel.text = "\(currentBet)"
+        winnerPaidLabel.text = "\(winnings)"
+    }
     
+    func showAlertWithText(heather : String = "Warning", message : String) {
+        //en esta función hay dos parametros. El encabezado está por defecto fijado como "Warning" aunque al llamar la función se puede cambiar. "message" siempre ha de ser especificado al llamar a la función
+        
+        //Genero una variable que va a ser nuestro controlador de la alerta, en ella digo lo que se va a mostrar, y su estilo
+        var alert = UIAlertController(title: heather, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+        //A esa alerta le aplico una función, que viene a ser el cuadro que ve el usuario para interactuar con ella
+        alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: nil))
+        //Por ultimo tengo que encargarme de que esa alerta se muestre al usuario en la UI:
+        self.presentViewController(alert, animated: true, completion: nil)
+        
+    }
     
 }
     
